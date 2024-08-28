@@ -1,9 +1,5 @@
 project_name: cli
 
-monorepo:
-  tag_prefix: cli-
-  dir: cli
-
 includes:
   - from_file:
       # Relative to the directory Go Releaser is run from (which is the root of the repository)
