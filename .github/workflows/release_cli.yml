@@ -77,14 +77,11 @@ jobs:
 
       - name: Create Pull Request
         if: steps.semver_parser.outputs.prerelease == ''
-        uses: peter-evans/create-pull-request@v4
+        uses: peter-evans/create-pull-request@v6
         with:
-          # required so the PR triggers workflow runs
-          token: ${{ secrets.GH_CQ_BOT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           branch: chore/update-cli-version
           base: main
           title: "chore: Update CLI version to ${{steps.split.outputs.version}}"
           commit-message: "chore: Update CLI version to ${{steps.split.outputs.version}}"
           body: Updates the CLI latest version to ${{steps.split.outputs.version}}
-          labels: automerge
-          author: cq-bot <cq-bot@users.noreply.github.com>
