@@ -65,7 +65,7 @@ jobs:
 
       # Publish only to GitHub
       - name: Run GoReleaser PreRelease
-        if: steps.semver_parser.outputs.prerelease != ''
+        # if: steps.semver_parser.outputs.prerelease != ''
         run: goreleaser release --clean -f ./cli/.goreleaser.prerelease.yaml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
