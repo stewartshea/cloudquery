@@ -47,19 +47,3 @@ changelog:
       - '^test:'
 release:
   prerelease: auto
-
-github_packages:
-  owner: stewartshea
-  name: cli
-  versions:
-    latest: true
-    template: "{{ .Version }}"
-  goos:
-    - windows
-    - linux
-    - darwin
-  goarch:
-    - amd64
-    - arm64
-  binaries:
-    - cloudquery
