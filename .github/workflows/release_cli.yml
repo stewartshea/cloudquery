@@ -50,13 +50,12 @@ jobs:
       - name: Install GoReleaser
         uses: goreleaser/goreleaser-action@v5
         with:
-          distribution: goreleaser-pro
+          distribution: goreleaser
           version: latest
           install-only: true
       - name: Run GoReleaser Dry-Run
         run: goreleaser release --clean --skip=validate,publish -f ./cli/.goreleaser.yaml
         env:
-          GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
 
       - name: Login to Docker Registry
@@ -64,25 +63,13 @@ jobs:
           echo "${{ secrets.GITHUB_TOKEN }}" | \
           docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
 
-      # Publish to GitHub and Homebrew
-      - name: Run GoReleaser Release
-        if: steps.semver_parser.outputs.prerelease == ''
-        run: goreleaser release --clean -f ./cli/.goreleaser.yaml
-        env:
-          GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
-          GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
-          # A custom token is required for publishing to Homebrew
-          GITHUB_TOKEN: ${{ secrets.GH_CQ_BOT }}
-
       # Publish only to GitHub
       - name: Run GoReleaser PreRelease
         if: steps.semver_parser.outputs.prerelease != ''
         run: goreleaser release --clean -f ./cli/.goreleaser.prerelease.yaml
         env:
-          GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
           GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
-          # A custom token is required for publishing to Homebrew
-          GITHUB_TOKEN: ${{ secrets.GH_CQ_BOT }}
+
 
       - name: Update version file
         if: steps.semver_parser.outputs.prerelease == ''
