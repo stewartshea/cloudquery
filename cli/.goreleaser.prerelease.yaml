@@ -6,8 +6,11 @@ project_name: cli
 
 before:
   hooks:
-    - cmd: go mod download
-      dir: ./cli
+    - run: |
+        cd ./cli
+        go mod download
+
+
 builds:
   - flags:
       - -buildmode=exe
