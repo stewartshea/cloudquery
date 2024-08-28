@@ -99,5 +99,3 @@ jobs:
           title: "chore: Update CLI version to ${{steps.split.outputs.version}}"
           commit-message: "chore: Update CLI version to ${{steps.split.outputs.version}}"
           body: Updates the CLI latest version to ${{steps.split.outputs.version}}
-          labels: automerge
-          author: cq-bot <cq-bot@users.noreply.github.com>
