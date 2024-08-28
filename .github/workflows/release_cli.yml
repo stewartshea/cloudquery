@@ -53,10 +53,10 @@ jobs:
           distribution: goreleaser
           version: latest
           install-only: true
-      - name: Run GoReleaser Dry-Run
-        run: goreleaser release --clean --skip=validate,publish -f ./cli/.goreleaser.yaml
-        env:
-          GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
+      # - name: Run GoReleaser Dry-Run
+      #   run: goreleaser release --clean --skip=validate,publish -f ./cli/.goreleaser.yaml
+      #   env:
+      #     GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
 
       - name: Login to Docker Registry
         run: |
