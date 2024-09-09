@@ -1,8 +1,10 @@
 name: release-cli
+
 on:
   push:
     tags:
       - "cli-v*.*.*"
+
 env:
   CGO_ENABLED: 0
 
@@ -10,23 +12,20 @@ jobs:
   release-cli:
     timeout-minutes: 30
     runs-on: ubuntu-latest
+
     steps:
-      # Tag format is cli-<version>
       - name: Split tag
         id: split
         run: |
-          tag=${{github.ref_name}}
+          tag=${{ github.ref_name }}
           echo "version=$(echo $tag | cut -d- -f2-)" >> $GITHUB_OUTPUT
-      # Fail if not a valid SemVer string
-      - name: Parse semver string
-        id: semver_parser
-        uses: booxmedialtd/ws-action-parse-semver@7784200024d6b3fc01253e617ec0168daf603de3
-        with:
-          input_string: ${{steps.split.outputs.version}}
-      - name: Checkout
+
+      # Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
+
       - uses: actions/cache@v4
         with:
           path: |
@@ -35,54 +34,23 @@ jobs:
           key: ${{ runner.os }}-go-1.21.11-release-cache-${{ hashFiles('cli/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-1.21.11-release-cache-cli
+
       - name: Set up Go 1.x
         uses: actions/setup-go@v5
         with:
           go-version-file: cli/go.mod
           cache: false
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Install GoReleaser
-        uses: goreleaser/goreleaser-action@v5
-        with:
-          distribution: goreleaser
-          version: latest
-          install-only: true
-      # - name: Run GoReleaser Dry-Run
-      #   run: goreleaser release --clean --skip=validate,publish -f ./cli/.goreleaser.yaml
-      #   env:
-      #     GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
-
-      - name: Login to GitHub Packages
+      # Build Linux binary
+      - name: Build Linux Binary
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | \
-          docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
+          cd cli
+          go build -ldflags "-s -w -X github.com/stewartshea/cloudquery/cli/cmd.Version=${{ steps.split.outputs.version }}" -o cloudquery-linux-amd64 ./main.go
 
-      # Publish only to GitHub
-      - name: Run GoReleaser PreRelease
-        # if: steps.semver_parser.outputs.prerelease != ''
-        run: goreleaser release --clean -f ./cli/.goreleaser.prerelease.yaml
+      # Create GitHub release and upload binary
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: cli/cloudquery-linux-amd64
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
-
-
-      - name: Update version file
-        if: steps.semver_parser.outputs.prerelease == ''
-        run: 'echo "{ \"latest\": \"${{github.ref_name}}\" }" > ./website/versions/cli.json'
-
-      - name: Create Pull Request
-        if: steps.semver_parser.outputs.prerelease == ''
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: chore/update-cli-version
-          base: main
-          title: "chore: Update CLI version to ${{steps.split.outputs.version}}"
-          commit-message: "chore: Update CLI version to ${{steps.split.outputs.version}}"
-          body: Updates the CLI latest version to ${{steps.split.outputs.version}}
